@@ -45,56 +45,103 @@ export default function DashboardPage() {
     }
 
     return (
-        <div className="space-y-6">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Overview</h1>
+        <div className="space-y-8 animate-in fade-in duration-500">
+            <div>
+                <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Dashboard</h1>
+                <p className="text-slate-500 dark:text-slate-400">Overview</p>
+            </div>
 
+            {/* Stat Cards */}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 <StatCard
                     title="Total Teachers"
                     value={stats.totalTeachers}
-                    icon={<Users className="h-5 w-5 text-blue-600" />}
+                    icon={<Users className="h-6 w-6" />}
+                    color="bg-blue-600"
                 />
                 <StatCard
                     title="Present Today"
                     value={stats.todayPresent}
-                    icon={<CheckCircle className="h-5 w-5 text-green-600" />}
+                    icon={<CheckCircle className="h-6 w-6" />}
+                    color="bg-green-600"
                 />
                 <StatCard
                     title="Late Arrivals"
                     value={stats.todayLate}
-                    icon={<Clock className="h-5 w-5 text-yellow-600" />}
+                    icon={<Clock className="h-6 w-6" />}
+                    color="bg-yellow-500"
                 />
                 <StatCard
                     title="Violations"
                     value={stats.violations}
-                    icon={<AlertTriangle className="h-5 w-5 text-red-600" />}
+                    icon={<AlertTriangle className="h-6 w-6" />}
+                    color="bg-red-600"
                 />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="p-6 bg-white rounded-lg shadow-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700 h-64 flex flex-col items-center justify-center text-gray-500">
-                    <BarChart3 className="h-12 w-12 mb-2 text-gray-300" />
-                    <p>Attendance Trends will appear here as you collect data.</p>
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                {/* Chart Container */}
+                <div className="xl:col-span-2 p-8 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 min-h-[400px] flex flex-col">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">Attendance Trends</h3>
+                    <div className="flex-1 flex flex-col items-center justify-center text-slate-400">
+                        <div className="relative w-48 h-32 mb-6">
+                            <svg className="w-full h-full text-slate-200 dark:text-slate-700" viewBox="0 0 100 50" fill="none" preserveAspectRatio="none">
+                                <path d="M0 45 L20 35 L40 42 L60 20 L80 30 L100 5" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                        </div>
+                        <p className="text-sm font-medium">Attendance Trends will appear here as you collect data.</p>
+                    </div>
                 </div>
-                <div className="p-6 bg-white rounded-lg shadow-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700 h-64 flex flex-col items-center justify-center text-gray-500">
-                    <Clock className="h-12 w-12 mb-2 text-gray-300" />
-                    <p>Recent activity will be logged here.</p>
+
+                {/* Recent Activity List */}
+                <div className="p-6 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">Recent Activity</h3>
+                    <div className="space-y-6">
+                        {loading ? (
+                            <p className="text-sm text-slate-400">Loading activity...</p>
+                        ) : (
+                            <div className="space-y-4">
+                                <ActivityItem name="System" message="Welcome to TWMS" time="Just now" color="bg-blue-500" />
+                                <ActivityItem name="Admin" message="Setup complete" time="2 mins ago" color="bg-slate-200" />
+                                <ActivityItem name="System" message="Rules initialized" time="5 mins ago" color="bg-slate-200" />
+                                <div className="pt-4 mt-4 border-t border-slate-50 dark:border-slate-700">
+                                    <button className="w-full py-2 text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400">
+                                        View All Activity
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
     );
 }
 
-function StatCard({ title, value, icon }: { title: string, value: number | string, icon: React.ReactNode }) {
+function StatCard({ title, value, icon, color }: { title: string, value: number, icon: React.ReactNode, color: string }) {
     return (
-        <div className="p-6 bg-white rounded-lg shadow-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-            <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">{title}</h3>
+        <div className="p-6 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 flex items-center transition-all hover:shadow-md hover:scale-[1.02]">
+            <div className={`${color} p-4 rounded-xl text-white mr-5 shadow-lg shadow-inherit/20`}>
                 {icon}
             </div>
-            <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">{value}</p>
+            <div>
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">{title}</p>
+                <p className="text-3xl font-extrabold text-slate-900 dark:text-white leading-none">{value}</p>
+            </div>
         </div>
     );
 }
 
-import { BarChart3 } from "lucide-react";
+function ActivityItem({ name, message, time, color }: any) {
+    return (
+        <div className="flex items-start gap-4">
+            <div className={`mt-1 h-8 w-8 rounded-full ${color} shrink-0 shadow-sm`} />
+            <div className="min-w-0">
+                <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">
+                    {message}
+                </p>
+                <p className="text-xs text-slate-400 font-medium">{time}</p>
+            </div>
+        </div>
+    );
+}

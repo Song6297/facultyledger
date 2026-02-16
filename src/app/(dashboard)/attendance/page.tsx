@@ -68,77 +68,90 @@ export default function AttendancePage() {
     if (loading) return <div className="p-8 text-center text-gray-500 dark:text-gray-400">Loading attendance...</div>;
 
     return (
-        <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Daily Attendance</h1>
-                <div className="text-sm text-gray-500 dark:text-gray-400">
-                    {new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+        <div className="space-y-8 animate-in fade-in duration-500">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Attendance</h1>
+                    <p className="text-slate-500 dark:text-slate-400">
+                        {new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                    </p>
+                </div>
+                <div className="flex items-center gap-3 bg-white dark:bg-slate-800 p-2 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm">
+                    <div className="px-4 py-1 text-center border-r border-slate-100 dark:border-slate-700">
+                        <p className="text-xs text-slate-400 uppercase font-bold tracking-wider">Present</p>
+                        <p className="text-lg font-bold text-green-600">{attendance.filter(a => a.status === 'present' || a.status === 'late').length}</p>
+                    </div>
+                    <div className="px-4 py-1 text-center">
+                        <p className="text-xs text-slate-400 uppercase font-bold tracking-wider">Absent</p>
+                        <p className="text-lg font-bold text-red-600">{teachers.length - attendance.length}</p>
+                    </div>
                 </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+            <div className="bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700 rounded-2xl overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                        <thead className="bg-gray-50 dark:bg-gray-900/50">
+                    <table className="min-w-full divide-y divide-slate-100 dark:divide-slate-700">
+                        <thead className="bg-slate-50/50 dark:bg-slate-900/50">
                             <tr>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Teacher</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Check In</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Check Out</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Status</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Actions</th>
+                                <th scope="col" className="px-8 py-5 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">Teacher</th>
+                                <th scope="col" className="px-8 py-5 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">Check In</th>
+                                <th scope="col" className="px-8 py-5 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">Check Out</th>
+                                <th scope="col" className="px-8 py-5 text-left text-xs font-bold text-slate-400 uppercase tracking-widest">Status</th>
+                                <th scope="col" className="px-8 py-5 text-right text-xs font-bold text-slate-400 uppercase tracking-widest">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                             {teachers.map((teacher) => {
                                 const record = attendance.find(r => r.teacherId === teacher.id);
                                 const isCheckedIn = !!record;
                                 const isCheckedOut = !!record?.checkOut;
 
                                 return (
-                                    <tr key={teacher.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                                        <td className="px-6 py-4 whitespace-nowrap">
+                                    <tr key={teacher.id} className="group hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition-colors">
+                                        <td className="px-8 py-5 whitespace-nowrap">
                                             <div className="flex items-center">
-                                                <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold text-gray-500 dark:bg-gray-700 dark:text-gray-300">
+                                                <div className="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center text-sm font-bold transition-transform group-hover:scale-110">
                                                     {teacher.fullName.charAt(0)}
                                                 </div>
-                                                <div className="ml-3">
-                                                    <div className="text-sm font-medium text-gray-900 dark:text-white">{teacher.fullName}</div>
-                                                </div>
+                                                <div className="ml-4 text-sm font-bold text-slate-900 dark:text-white">{teacher.fullName}</div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                        <td className="px-8 py-5 whitespace-nowrap text-sm font-medium text-slate-500 dark:text-slate-400">
                                             {formatTime(record?.checkIn || null)}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                        <td className="px-8 py-5 whitespace-nowrap text-sm font-medium text-slate-500 dark:text-slate-400">
                                             {formatTime(record?.checkOut || null)}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(record?.status || 'absent')}`}>
-                                                {record?.status || 'Absent'}
-                                            </span>
-                                            {record?.lateMinutes && record.lateMinutes > 0 ? (
-                                                <span className="ml-2 text-xs text-red-500 font-medium">
-                                                    (+{record.lateMinutes} min)
+                                        <td className="px-8 py-5 whitespace-nowrap">
+                                            <div className="flex items-center gap-2">
+                                                <span className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full ${getStatusColor(record?.status || 'absent')}`}>
+                                                    {record?.status || 'Absent'}
                                                 </span>
-                                            ) : null}
+                                                {record?.lateMinutes && record.lateMinutes > 0 ? (
+                                                    <span className="flex items-center text-[10px] text-red-500 font-bold bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-full">
+                                                        <Clock className="h-3 w-3 mr-1" />
+                                                        {record.lateMinutes}m
+                                                    </span>
+                                                ) : null}
+                                            </div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <td className="px-8 py-5 whitespace-nowrap text-right text-sm font-medium">
                                             {!isCheckedIn ? (
                                                 <button
                                                     onClick={() => handleCheckIn(teacher)}
-                                                    className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 mr-4"
+                                                    className="px-4 py-2 bg-green-50 text-green-600 hover:bg-green-600 hover:text-white rounded-xl transition-all font-bold text-xs"
                                                 >
-                                                    Check In
+                                                    Mark Present
                                                 </button>
                                             ) : !isCheckedOut ? (
                                                 <button
-                                                    onClick={() => handleCheckOut(teacher.id!)} // Assuming teacher.id is available, checkOut currently needs string
-                                                    className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                                                    onClick={() => handleCheckOut(teacher.id!)}
+                                                    className="px-4 py-2 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl transition-all font-bold text-xs"
                                                 >
                                                     Check Out
                                                 </button>
                                             ) : (
-                                                <span className="text-gray-400 cursor-not-allowed">Completed</span>
+                                                <span className="px-4 py-2 bg-slate-50 text-slate-400 rounded-xl font-bold text-xs">Completed</span>
                                             )}
                                         </td>
                                     </tr>

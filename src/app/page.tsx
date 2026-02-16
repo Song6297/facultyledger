@@ -1,7 +1,29 @@
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
-import { ArrowRight, CheckCircle, Shield, BarChart3, Users } from "lucide-react";
+import { ArrowRight, CheckCircle, Shield, BarChart3, Users, Loader2 } from "lucide-react";
 
 export default function Home() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && user) {
+      router.push("/dashboard");
+    }
+  }, [user, loading, router]);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-white dark:bg-gray-950">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-white dark:bg-gray-950">
       {/* Header */}

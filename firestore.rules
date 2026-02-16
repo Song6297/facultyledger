@@ -6,25 +6,28 @@ service cloud.firestore {
     function isSignedIn() {
       return request.auth != null;
     }
-    
+
     function getUserData() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      let path = /databases/$(database)/documents/users/$(request.auth.uid);
+      return exists(path) ? get(path).data : {};
     }
-    
-    function isRole(role) {
-      return isSignedIn() && getUserData().role == role;
+
+    function hasRole(role) {
+      let data = getUserData();
+      return isSignedIn() && "role" in data && data.role == role;
     }
-    
+
     function isAdmin() {
-      return isRole('admin');
+      return hasRole('admin');
     }
-    
+
     function isPrincipal() {
-      return isRole('principal');
+      return hasRole('principal');
     }
-    
+
     function isManagement() {
-      return isAdmin() || isPrincipal();
+      let data = getUserData();
+      return isSignedIn() && "role" in data && (data.role == 'admin' || data.role == 'principal');
     }
 
     // Rules for each collection

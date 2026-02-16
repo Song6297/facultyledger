@@ -9,6 +9,8 @@ import { collection, query, orderBy, limit, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { Activity } from "@/types/activity";
 import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
+import { where } from "firebase/firestore";
 
 export default function DashboardPage() {
     const [stats, setStats] = useState({
@@ -19,25 +21,35 @@ export default function DashboardPage() {
     });
     const [activities, setActivities] = useState<Activity[]>([]);
     const [loading, setLoading] = useState(true);
+    const { userProfile } = useAuth();
 
     useEffect(() => {
         const fetchStats = async () => {
+            if (!userProfile) return;
+
             try {
-                const [teachers, attendance, violations] = await Promise.all([
-                    getTeachers(),
-                    getTodayAttendance(),
-                    getViolations(),
-                ]);
+                const isManagement = userProfile.role === 'admin' || userProfile.role === 'principal';
 
-                setStats({
-                    totalTeachers: teachers.length,
-                    todayPresent: attendance.filter(a => a.status === 'present' || a.status === 'late').length,
-                    todayLate: attendance.filter(a => a.status === 'late' || (a.lateMinutes > 0)).length,
-                    violations: violations.length,
-                });
+                if (isManagement) {
+                    const [teachers, attendance, violations] = await Promise.all([
+                        getTeachers(),
+                        getTodayAttendance(),
+                        getViolations(),
+                    ]);
 
-                // Fetch recent activities
-                const q = query(collection(db, "activities"), orderBy("timestamp", "desc"), limit(5));
+                    setStats({
+                        totalTeachers: teachers.length,
+                        todayPresent: attendance.filter(a => a.status === 'present' || a.status === 'late').length,
+                        todayLate: attendance.filter(a => a.status === 'late' || (a.lateMinutes > 0)).length,
+                        violations: violations.length,
+                    });
+                }
+
+                // Fetch recent activities (management sees all, teachers see theirs)
+                const q = isManagement
+                    ? query(collection(db, "activities"), orderBy("timestamp", "desc"), limit(5))
+                    : query(collection(db, "activities"), where("userId", "==", userProfile.userId || ""), orderBy("timestamp", "desc"), limit(5));
+
                 const activitySnap = await getDocs(q);
                 setActivities(activitySnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Activity)));
             } catch (error) {
@@ -48,7 +60,7 @@ export default function DashboardPage() {
         };
 
         fetchStats();
-    }, []);
+    }, [userProfile]);
 
     if (loading) {
         return <div className="p-8 text-center text-gray-500">Loading overview...</div>;

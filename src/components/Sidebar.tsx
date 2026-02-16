@@ -46,8 +46,11 @@ export default function Sidebar() {
                 <nav className="space-y-1">
                     {navItems.map((item) => {
                         // Role-based visibility
-                        if (item.name === "Audit Logs" && userProfile?.role !== 'admin') return null;
-                        if (item.name === "Salary" && userProfile?.role === 'teacher') return null;
+                        const isManagement = userProfile?.role === 'admin' || userProfile?.role === 'principal';
+                        const isAdmin = userProfile?.role === 'admin';
+
+                        if (item.name === "Audit Logs" && !isAdmin) return null;
+                        if ((item.name === "Salary" || item.name === "Teachers" || item.name === "Rules & Penalties" || item.name === "Analytics") && !isManagement) return null;
 
                         const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
                         return (

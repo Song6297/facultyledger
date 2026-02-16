@@ -5,6 +5,10 @@ import { getTeachers } from "@/lib/firebase/teachers";
 import { getTodayAttendance } from "@/lib/firebase/attendance";
 import { getViolations } from "@/lib/firebase/rules";
 import { Users, Clock, AlertTriangle, CheckCircle } from "lucide-react";
+import { collection, query, orderBy, limit, getDocs } from "firebase/firestore";
+import { db } from "@/lib/firebase/config";
+import { Activity } from "@/types/activity";
+import Link from "next/link";
 
 export default function DashboardPage() {
     const [stats, setStats] = useState({
@@ -13,6 +17,7 @@ export default function DashboardPage() {
         todayLate: 0,
         violations: 0,
     });
+    const [activities, setActivities] = useState<Activity[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -30,6 +35,11 @@ export default function DashboardPage() {
                     todayLate: attendance.filter(a => a.status === 'late' || (a.lateMinutes > 0)).length,
                     violations: violations.length,
                 });
+
+                // Fetch recent activities
+                const q = query(collection(db, "activities"), orderBy("timestamp", "desc"), limit(5));
+                const activitySnap = await getDocs(q);
+                setActivities(activitySnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Activity)));
             } catch (error) {
                 console.error("Error fetching dashboard stats:", error);
             } finally {
@@ -99,15 +109,27 @@ export default function DashboardPage() {
                     <div className="space-y-6">
                         {loading ? (
                             <p className="text-sm text-slate-400">Loading activity...</p>
+                        ) : activities.length === 0 ? (
+                            <p className="text-sm text-slate-400 italic">No recent activity detected.</p>
                         ) : (
                             <div className="space-y-4">
-                                <ActivityItem name="System" message="Welcome to TWMS" time="Just now" color="bg-blue-500" />
-                                <ActivityItem name="Admin" message="Setup complete" time="2 mins ago" color="bg-slate-200" />
-                                <ActivityItem name="System" message="Rules initialized" time="5 mins ago" color="bg-slate-200" />
+                                {activities.map((activity, i) => (
+                                    <ActivityItem
+                                        key={activity.id}
+                                        name={activity.performedByName}
+                                        message={activity.description}
+                                        time={activity.timestamp?.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        color={
+                                            activity.actionType === 'salary_processed' ? 'bg-green-500' :
+                                                activity.actionType === 'violation_recorded' ? 'bg-red-500' :
+                                                    'bg-blue-500'
+                                        }
+                                    />
+                                ))}
                                 <div className="pt-4 mt-4 border-t border-slate-50 dark:border-slate-700">
-                                    <button className="w-full py-2 text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400">
-                                        View All Activity
-                                    </button>
+                                    <Link href="/audit" className="w-full py-2 text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 text-center block">
+                                        View All Audit Logs
+                                    </Link>
                                 </div>
                             </div>
                         )}

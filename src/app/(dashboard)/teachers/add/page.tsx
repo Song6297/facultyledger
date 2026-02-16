@@ -6,6 +6,8 @@ import { addTeacher } from "@/lib/firebase/teachers";
 import { TeacherProfile } from "@/types/teacher";
 import { ArrowLeft, Loader2, Save } from "lucide-react";
 import Link from "next/link";
+import { logActivity } from "@/lib/utils/activityLogger";
+import { useAuth } from "@/context/AuthContext";
 
 export default function AddTeacherPage() {
     const router = useRouter();
@@ -46,18 +48,30 @@ export default function AddTeacherPage() {
         }
     };
 
+    const { user, userProfile } = useAuth();
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
 
         try {
-            // In a real app, you might want to create a Firebase Auth user here too using a Cloud Function or secondary app.
-            // For this MVP, we just create the teacher profile record.
-            await addTeacher({
+            const tempId = "placeholder-uid-" + Date.now();
+            const teacherId = await addTeacher({
                 ...formData,
-                userId: "placeholder-uid-" + Date.now(), // Placeholder
+                userId: tempId,
                 salaryBase: Number(formData.salaryBase),
-            } as any); // Type assertion for MVP speed
+            } as any);
+
+            // Log activity
+            await logActivity({
+                userId: teacherId,
+                actionType: 'profile_update',
+                description: `New faculty record created for ${formData.fullName}`,
+                performedBy: user?.uid || 'system',
+                performedByName: userProfile?.name || 'Admin',
+                performedByRole: (userProfile?.role as any) || 'admin',
+                metadata: { department: formData.department }
+            });
 
             router.push("/teachers");
         } catch (error) {

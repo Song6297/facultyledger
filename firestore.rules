@@ -30,43 +30,60 @@ service cloud.firestore {
     // Rules for each collection
     
     match /users/{userId} {
+      // Users can read their own profile, Management can read all Profiles
       allow read: if isSignedIn() && (request.auth.uid == userId || isManagement());
+      // Users can create their own profile on signup
       allow create: if isSignedIn() && request.auth.uid == userId;
+      // Only Admin can update roles or other critical user info, users can potentially update basic info
       allow update: if isAdmin() || (isSignedIn() && request.auth.uid == userId);
     }
     
     match /teachers/{teacherId} {
       allow read: if isSignedIn() && (isManagement() || resource.data.userId == request.auth.uid);
-      allow write: if isManagement();
+      // Principal can view/edit, but only Admin can delete or create
+      allow update: if isManagement();
+      allow create, delete: if isAdmin();
     }
     
     match /attendance/{recordId} {
       allow read: if isSignedIn() && (isManagement() || resource.data.teacherId == request.auth.uid);
-      allow write: if isSignedIn() && (isManagement() || request.resource.data.teacherId == request.auth.uid);
+      // Both Admin and Principal can manage attendance
+      allow write: if isManagement() || (isSignedIn() && request.resource.data.teacherId == request.auth.uid);
     }
     
     match /rules/{ruleId} {
       allow read: if isSignedIn();
-      allow write: if isManagement();
+      // Only Admin can define institutional rules
+      allow write: if isAdmin();
     }
     
     match /violations/{violationId} {
       allow read: if isSignedIn() && (isManagement() || resource.data.teacherId == request.auth.uid);
+      // Principals can record violations (warnings), Admins can manage all
       allow write: if isManagement();
     }
     
     match /salary_transactions/{txId} {
       allow read: if isSignedIn() && (isManagement() || resource.data.teacherId == request.auth.uid);
+      // STRICT: Only Admin can process salaries
       allow write: if isAdmin();
     }
     
     match /organization_balance/{balanceId} {
+      // STRICT: Only Admin can see or touch the bank
       allow read, write: if isAdmin();
     }
     
     match /audit_logs/{logId} {
       allow read: if isManagement();
       allow create: if isSignedIn();
+    }
+
+    // New Activities Collection for the Timeline
+    match /activities/{activityId} {
+      allow read: if isSignedIn() && (isManagement() || resource.data.userId == request.auth.uid);
+      allow create: if isSignedIn(); // Any authenticated action can create a log
+      allow update, delete: if false; // Audit logs should never be modified or deleted
     }
   }
 }

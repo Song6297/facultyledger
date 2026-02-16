@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { getSalaryHistory, generateMonthlySalaries, paySalary, getOrganizationBalance } from "@/lib/firebase/salary";
 import { SalaryTransaction, OrganizationBalance } from "@/types/salary";
-import { DollarSign, CreditCard, Calendar, CheckCircle, Clock } from "lucide-react";
+import { DollarSign, CreditCard, Calendar, CheckCircle, Clock, Plus, AlertCircle } from "lucide-react";
+import { logActivity } from "@/lib/utils/activityLogger";
+import { useAuth } from "@/context/AuthContext";
 
 export default function SalaryPage() {
     const [transactions, setTransactions] = useState<SalaryTransaction[]>([]);
@@ -31,10 +33,24 @@ export default function SalaryPage() {
         }
     };
 
+    const { user, userProfile } = useAuth();
+
     const handleGenerate = async () => {
         try {
             setLoading(true);
             await generateMonthlySalaries(selectedMonth);
+
+            // Log for institution
+            await logActivity({
+                userId: 'organization', // System level log
+                actionType: 'salary_processed',
+                description: `Salary draft generated for period ${selectedMonth}`,
+                performedBy: user?.uid || 'system',
+                performedByName: userProfile?.name || 'Admin',
+                performedByRole: 'admin',
+                metadata: { month: selectedMonth }
+            });
+
             await fetchData();
             alert("Salaries generated for " + selectedMonth);
         } catch (error) {
@@ -48,6 +64,18 @@ export default function SalaryPage() {
         if (confirm(`Confirm payment of ₹${tx.netSalary} to ${tx.teacherName}?`)) {
             try {
                 await paySalary(tx.id!, tx.netSalary);
+
+                // Log for the teacher
+                await logActivity({
+                    userId: tx.teacherId,
+                    actionType: 'salary_processed',
+                    description: `Salary processed for ${tx.month}: ₹${tx.netSalary}`,
+                    performedBy: user?.uid || 'system',
+                    performedByName: userProfile?.name || 'Admin',
+                    performedByRole: 'admin',
+                    metadata: { txId: tx.id, amount: tx.netSalary }
+                });
+
                 await fetchData();
                 alert("Payment successful");
             } catch (error: any) {

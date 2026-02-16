@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { LayoutDashboard, Users, CalendarCheck, FileText, DollarSign, BarChart3, Settings, LogOut } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { LayoutDashboard, Users, CalendarCheck, FileText, DollarSign, BarChart3, Settings, LogOut, ShieldAlert, FolderOpen } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { auth } from "@/lib/firebase/config";
 import { signOut } from "firebase/auth";
@@ -11,20 +11,23 @@ const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Teachers", href: "/teachers", icon: Users },
     { name: "Attendance", href: "/attendance", icon: CalendarCheck },
-    { name: "Rules & Penalties", href: "/rules", icon: FileText },
+    { name: "Rules & Penalties", href: "/rules", icon: ShieldAlert },
     { name: "Salary", href: "/salary", icon: DollarSign },
+    { name: "Audit Logs", href: "/audit", icon: BarChart3 },
     { name: "Analytics", href: "/analytics", icon: BarChart3 },
-    { name: "Documents", href: "/documents", icon: FileText },
+    { name: "Documents", href: "/documents", icon: FolderOpen },
     { name: "Settings", href: "/settings", icon: Settings },
 ];
 
 export default function Sidebar() {
     const pathname = usePathname();
+    const router = useRouter();
     const { user, userProfile } = useAuth();
 
     const handleLogout = async () => {
         try {
             await signOut(auth);
+            router.push("/");
         } catch (error) {
             console.error("Logout error", error);
         }
@@ -42,6 +45,10 @@ export default function Sidebar() {
             <div className="flex-1 overflow-y-auto px-3">
                 <nav className="space-y-1">
                     {navItems.map((item) => {
+                        // Role-based visibility
+                        if (item.name === "Audit Logs" && userProfile?.role !== 'admin') return null;
+                        if (item.name === "Salary" && userProfile?.role === 'teacher') return null;
+
                         const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
                         return (
                             <Link

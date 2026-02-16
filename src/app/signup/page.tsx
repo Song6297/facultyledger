@@ -34,7 +34,7 @@ export default function SignUpPage() {
                 createdAt: new Date().toISOString(),
             });
 
-            router.push("/");
+            router.push("/dashboard");
         } catch (err: any) {
             setError(err.message || "Failed to create account.");
             console.error(err);

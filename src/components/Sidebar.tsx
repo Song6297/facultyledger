@@ -20,7 +20,7 @@ const navItems = [
 
 export default function Sidebar() {
     const pathname = usePathname();
-    const { user } = useAuth();
+    const { user, userProfile } = useAuth();
 
     const handleLogout = async () => {
         try {
@@ -45,8 +45,8 @@ export default function Sidebar() {
                                 key={item.name}
                                 href={item.href}
                                 className={`group flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${isActive
-                                        ? "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
-                                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
+                                    ? "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
+                                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
                                     }`}
                             >
                                 <item.icon
@@ -63,9 +63,12 @@ export default function Sidebar() {
             <div className="p-4 border-t border-gray-200 dark:border-gray-800">
                 <div className="flex items-center mb-4">
                     <div className="ml-3">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white">{user?.email}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Admin</p>
-                        {/* TODO: dynamic role */}
+                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate max-w-[180px]">
+                            {userProfile?.name || user?.email}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 first-letter:uppercase">
+                            {userProfile?.role || "Admin"}
+                        </p>
                     </div>
                 </div>
                 <button
